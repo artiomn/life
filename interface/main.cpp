@@ -53,7 +53,6 @@ int main(int argc, const char **argv)
         if (!le.step()) break;
         ::usleep(delay);
 
-        // Save cursor position.
         draw_frame_line(le.get_field_width());
         le.visualize(visitor_func);
         draw_frame_line(le.get_field_width());
