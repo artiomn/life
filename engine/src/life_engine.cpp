@@ -43,7 +43,7 @@ void LifeEngineBase<ElementType>::visualize(vis_funct vf)
 {
     for (size_t i = 0; i < field_.size(); ++i)
     {
-        auto coords = std::move(get_xy_from_counter(i));
+        auto coords = get_xy_from_counter(i);
         vf(coords.first, coords.second, field_[i], *this);
     }
 }
