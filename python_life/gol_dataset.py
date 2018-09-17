@@ -5,7 +5,7 @@ import tqdm
 
 class GameOfLife:
     @staticmethod
-    def gen_random_state(width: int, height: int):
+    def gen_random_state(width, height):
         state = (np.random.rand(width, height) * 2).astype(np.int32)
         return state
 
@@ -33,7 +33,7 @@ width = 20
 height = 30
 
 try:
-    data_file = h5py.File(f"dataset_{width}x{height}x{n_samples}.h5", 'r')
+    data_file = h5py.File("dataset_{width}x{height}x{n_samples}.h5".format(width=width, height=height, n_samples=n_samples), 'r')
     x_train = data_file["x_train"][:]
     y_train = data_file["y_train"][:]
     data_file.close()
@@ -50,9 +50,9 @@ except OSError:
     for i, x in tqdm.tqdm(enumerate(x_train), total=len(x_train)):
         y_train[i] = GameOfLife.next_state(x)
 
-    data_file = h5py.File(f"dataset_{width}x{height}x{n_samples}.h5", 'w')
+    data_file = h5py.File("dataset_{width}x{height}x{n_samples}.h5".format(width=width, height=height, n_samples=n_samples), 'w')
     data_file.create_dataset("x_train", data=x_train)
     data_file.create_dataset("y_train", data=y_train)
     data_file.close()
 
-print(f"Dataset shape: {x_train.shape}")
+print("Dataset shape: {}".format(x_train.shape))
