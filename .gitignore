@@ -28,5 +28,4 @@ logs
 dumps
 *.pyd
 __pycache__
-.*.swp
-.*.swo
+.*.sw*
