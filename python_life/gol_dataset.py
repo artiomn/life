@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
 
 import h5py
 import numpy as np
 import tqdm
+
 
 class GameOfLife:
     @staticmethod
@@ -28,16 +30,7 @@ class GameOfLife:
         return next_state
 
 
-n_samples = 10000
-width = 20
-height = 30
-
-try:
-    data_file = h5py.File("dataset_{width}x{height}x{n_samples}.h5".format(width=width, height=height, n_samples=n_samples), 'r')
-    x_train = data_file["x_train"][:]
-    y_train = data_file["y_train"][:]
-    data_file.close()
-except OSError:
+def gen_xy_data(width=20, height=30, n_samples=10000):
     print("Generate x_train")
     x_train = []
     for _ in tqdm.trange(n_samples):
@@ -50,9 +43,28 @@ except OSError:
     for i, x in tqdm.tqdm(enumerate(x_train), total=len(x_train)):
         y_train[i] = GameOfLife.next_state(x)
 
-    data_file = h5py.File("dataset_{width}x{height}x{n_samples}.h5".format(width=width, height=height, n_samples=n_samples), 'w')
-    data_file.create_dataset("x_train", data=x_train)
-    data_file.create_dataset("y_train", data=y_train)
-    data_file.close()
+    return x_train, y_train
 
-print("Dataset shape: {}".format(x_train.shape))
+
+if __name__ == "__main__":
+    print("Generator started...")
+    n_samples = 10000
+    width = 20
+    height = 30
+    x_train = []
+    y_train = []
+
+    try:
+        data_file = h5py.File("dataset_{width}x{height}x{n_samples}.h5".format(width=width, height=height, n_samples=n_samples), 'r')
+        x_train = data_file["x_train"][:]
+        y_train = data_file["y_train"][:]
+        data_file.close()
+    except OSError:
+        x_train, y_train = gen_xy_data(width, height, n_samples)
+        data_file = h5py.File("dataset_{width}x{height}x{n_samples}.h5".format(width=width, height=height, n_samples=n_samples), 'w')
+        data_file.create_dataset("x_train", data=x_train)
+        data_file.create_dataset("y_train", data=y_train)
+        data_file.close()
+
+    print("Dataset shape: {}".format(x_train.shape))
+
