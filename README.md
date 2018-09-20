@@ -141,15 +141,13 @@ $ ./life 40 30
 Тем не менее, предполагается, что я этого не знаю. И задача сводится к более общей: "На основе вектора состояния и примеров переходов между векторами, породить следующий вектор состояния".
 При этом, "вектор состояния" описывается матрицей поля. И задача является задачей прогнозирования.
 
-https://yanpanlau.github.io/2016/07/10/FlappyBird-Keras.html
-
 
 ### Выбор алгоритма работы и архитектуры сети
 
 Предварительно были исследованы сети прямого распространения.
 Сеть подобной конфигурации в Keras на 20 циклах обучения и выборке из 9000 "полей" даёт точность порядка 0.73:
 
-```
+```python
 model = Sequential()
 
 model.add(Dense(height, input_shape=(width, height), activation='relu'))
@@ -167,7 +165,7 @@ model.fit(x_train, y_train, epochs=20, verbose=1, validation_split=0.1)
 Проблема в том, что это не 0.75 верно предсказанных результатов, а 0.73 поверхности поля.
 Максимум, которого удалось достичь - 0.8 при следующей конфигурации сети:
 
-```
+```python
 model.add(Dense(height, input_shape=(width, height), activation='selu'))
 model.add(Dense(width * height, init='uniform', activation='relu'))
 model.add(Dense(width * height * 10, init='uniform', activation='relu'))
@@ -192,7 +190,6 @@ model.add(Dense(height, init='uniform', activation='sigmoid'))
 Однако, Keras содержит [SimpleRNN блок](https://keras.io/layers/recurrent/#simplernn), "проблемой" которого является то, что он забывает ранние состояния.
 
 С таким блоком удалось достигнуть максимальной точности прогноза более 0.97, при использовании враппера [Bidirectional](https://keras.io/layers/wrappers/#bidirectional)
-
 
 
 ### Реализация
