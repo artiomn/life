@@ -206,6 +206,7 @@ model.add(Dense(height, init='uniform', activation='sigmoid'))
 
 ### Запуск
 
+Код находится в каталоге [`python_life`](python_life).
 Должен быть доступен интерпретатор Python3, а также установлены пакеты:
 
 - [Keras](https://keras.io/) и какой-либо бэкэнд (я использовал TensorFlow) - используется для построения сети.
