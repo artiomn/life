@@ -69,6 +69,7 @@ def generate_model(width, height):
 def test_predictions(model, width, height, iterations_count):
     x_test, y_test = gen_xy_data(width, height, iterations_count)
 
+    print('Prediction started...')
     predictions = model.predict(x_test)
     correct_predicted_steps = 0
     correct_predictions = 0
@@ -89,7 +90,7 @@ def test_predictions(model, width, height, iterations_count):
         if test_arr.all():
             correct_predicted_steps += 1
 
-    print('Step correct prediction rate = {}\nCorrect predicted steps ={}'.
+    print('Step correct prediction rate = {}\nCorrect predicted steps = {}'.
           format(correct_predictions / len(x_test), correct_predicted_steps))
 
 
@@ -106,6 +107,8 @@ if __name__ == '__main__':
     height = len(x_train[0][0])
 
     model = generate_model(width, height)
+    plot_model(model, to_file='model.png')
+
     #cb = keras.callbacks.TensorBoard(log_dir='keras_logs', write_graph=True)
     model.fit(x_train,
               y_train,
