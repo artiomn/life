@@ -6,6 +6,7 @@ import tqdm
 import numpy as np
 from sys import argv
 
+from keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, EarlyStopping
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Bidirectional, BatchNormalization
 from keras.layers.recurrent import SimpleRNN
@@ -55,7 +56,7 @@ def generate_model(width, height):
                         unroll=True))
     model.add(Dense(width * height, activation='relu'))
     #model.add(Dropout(0.1))
-    model.add(BatchNormalization(momentum=0.995))
+    #model.add(BatchNormalization(momentum=0.995))
     model.add(Dense(height, activation='sigmoid'))
 
     model.summary()
@@ -64,6 +65,40 @@ def generate_model(width, height):
                   metrics=['accuracy'])
 
     return model
+
+
+def train_model(model, x_train, y_train, epochs=15, checkpoint_filename='checkpoint.hd5'):
+    #cb = keras.callbacks.TensorBoard(log_dir='keras_logs', write_graph=True)
+    try:
+        print('Trying to load weights checkpoint...')
+        model.load_weights(checkpoint_filename)
+        print('Weights were loaded...')
+    except OSError as e:
+        print(e)
+
+    checkpoint = ModelCheckpoint(checkpoint_filename,
+                                 monitor='val_acc',
+                                 verbose=1,
+                                 save_weights_only=True,
+                                 save_best_only=True,
+                                 mode='max')
+    rlr = ReduceLROnPlateau(monitor='val_loss',
+                            factor=0.2,
+                            mode='min',
+                            patience=5,
+                            min_delta=0.001,
+                            min_lr=0.001)
+    es = EarlyStopping(monitor='val_acc',
+                       verbose=1,
+                       mode='max')
+#                       restore_best_weights=True)
+    model.fit(x_train,
+              y_train,
+              epochs=epochs,
+              verbose=1,
+              validation_split=0.05,
+              callbacks=[es, rlr, checkpoint])
+    model.load_weights(checkpoint_filename)
 
 
 def test_predictions(model, width, height, iterations_count):
@@ -109,10 +144,6 @@ if __name__ == '__main__':
     model = generate_model(width, height)
     plot_model(model, to_file='model.png')
 
-    #cb = keras.callbacks.TensorBoard(log_dir='keras_logs', write_graph=True)
-    model.fit(x_train,
-              y_train,
-              epochs=15,
-              verbose=1,
-              validation_split=0.05) # callbacks=[cb])
-    test_predictions(model, width, height, iterations_count)
+    train_model(model, x_train, y_train)
+
+    test_predictions(model, width, height, iterations_count * 10)
