@@ -40,21 +40,20 @@ def generate_model(width, height):
                     input_shape=(width, height),
                     activation='linear'))
 
-    model.add(Bidirectional(SimpleRNN(height * width,
+    model.add(Bidirectional(SimpleRNN((height + 1) * (width + 1),
                                       input_shape=(width, height),
                                       activation='relu',
                                       return_sequences=True,
                                       recurrent_initializer='random_uniform',
                                       unroll=True),
                             merge_mode='sum'))
-
     model.add(SimpleRNN(height * width,
                         input_shape=(width, height),
                         activation='relu',
                         return_sequences=True,
-                        recurrent_initializer='uniform',
+                        recurrent_initializer='random_uniform',
                         unroll=True))
-    model.add(Dense(width * height, activation='relu'))
+    model.add(Dense((width + 1) * (height + 1), activation='relu'))
     #model.add(Dropout(0.1))
     #model.add(BatchNormalization(momentum=0.995))
     model.add(Dense(height, activation='sigmoid'))
@@ -70,11 +69,13 @@ def generate_model(width, height):
 def train_model(model, x_train, y_train, epochs=15, checkpoint_filename='checkpoint.hd5'):
     #cb = keras.callbacks.TensorBoard(log_dir='keras_logs', write_graph=True)
     try:
-        print('Trying to load weights checkpoint...')
+        print('Trying to load weights...')
         model.load_weights(checkpoint_filename)
         print('Weights were loaded...')
     except OSError as e:
         print(e)
+    except ValueError as e:
+        print('Incorrect checkpoint: {}'.format(e))
 
     checkpoint = ModelCheckpoint(checkpoint_filename,
                                  monitor='val_acc',
@@ -83,13 +84,15 @@ def train_model(model, x_train, y_train, epochs=15, checkpoint_filename='checkpo
                                  save_best_only=True,
                                  mode='max')
     rlr = ReduceLROnPlateau(monitor='val_loss',
+                            verbose=1,
                             factor=0.2,
-                            mode='min',
-                            patience=5,
+                            patience=2,
                             min_delta=0.001,
                             min_lr=0.001)
     es = EarlyStopping(monitor='val_acc',
                        verbose=1,
+                       min_delta=0.001,
+                       patience=4,
                        mode='max')
 #                       restore_best_weights=True)
     model.fit(x_train,
@@ -98,6 +101,7 @@ def train_model(model, x_train, y_train, epochs=15, checkpoint_filename='checkpo
               verbose=1,
               validation_split=0.05,
               callbacks=[es, rlr, checkpoint])
+    print('Loading the best weights...')
     model.load_weights(checkpoint_filename)
 
 
@@ -125,7 +129,7 @@ def test_predictions(model, width, height, iterations_count):
         if test_arr.all():
             correct_predicted_steps += 1
 
-    print('Step correct prediction rate = {}\nCorrect predicted steps = {}'.
+    print('Step\'s correct prediction rate = {}\nCorrect predicted steps = {}'.
           format(correct_predictions / len(x_test), correct_predicted_steps))
 
 
@@ -146,4 +150,4 @@ if __name__ == '__main__':
 
     train_model(model, x_train, y_train)
 
-    test_predictions(model, width, height, iterations_count * 10)
+    test_predictions(model, width, height, iterations_count * 2)
